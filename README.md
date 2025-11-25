@@ -244,13 +244,13 @@ cancer biomarkers identification using Explainable VAE with EFS ( Abdullah Khan,
 
 ## License
 
-[Specify License]
+MIT
 
 ## Contact
 
-abdullah.cs@uom.edu.pk
+abdullahkhan.prof@gmail.com
 
 ## Acknowledgments
 
-This implementation is based on the methodology described in the research paper:
+This is the implementation code of methodology described in the research paper:
 "Cancer Biomarker Identification Pipeline using Explainable VAEs with Ensemble Feature Selection"
