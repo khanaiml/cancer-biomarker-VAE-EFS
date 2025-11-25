@@ -8,7 +8,7 @@ This pipeline implements a generalizable methodology for identifying cancer biom
 - **VAE-based representation learning** for dimensionality reduction
 - **Integrated Gradients** for interpretable feature attribution
 - **Ensemble Feature Selection** for robust gene ranking and parsimonous feature selection
-- **Statistical validation** through ANOVA and correlation analysis
+- **Statistical validation** through ANOVA-base testing
 
 The methodology has been validated on two independent datasets:
 - **Primary Dataset (UCI)**: 801 samples, 20,531 genes → 12-gene panel (99.97% accuracy)
