@@ -1,0 +1,547 @@
+================================================================================
+DATA ACQUISITION GUIDE
+================================================================================
+
+This guide provides step-by-step instructions for acquiring the datasets used
+in this research. Download and prepare the data following the procedures below.
+
+================================================================================
+OVERVIEW
+================================================================================
+
+Two independent datasets are required to fully replicate the study:
+
+1. PRIMARY DATASET (UCI Repository)
+   - Source: UCI Machine Learning Repository
+   - Samples: 801 (5 cancer types)
+   - Features: 20,531 genes
+   - Purpose: Method development and initial validation
+
+2. SECONDARY DATASET (TCGA Portal)
+   - Source: TCGA GDC Data Portal
+   - Samples: 2,403 (5 cancer types)
+   - Features: 66,660 genes
+   - Purpose: Independent validation and generalizability assessment
+
+Cancer types included in both datasets:
+- BRCA: Breast Invasive Carcinoma
+- COAD: Colon Adenocarcinoma
+- KIRC: Kidney Renal Clear Cell Carcinoma
+- LUAD: Lung Adenocarcinoma
+- PRAD: Prostate Adenocarcinoma
+
+================================================================================
+PART 1: PRIMARY DATASET (UCI REPOSITORY)
+================================================================================
+
+SOURCE INFORMATION
+------------------
+Repository: UCI Machine Learning Repository
+Dataset Name: Gene Expression Cancer RNA-Seq
+DOI: 10.24432/C5R88H
+URL: https://archive.ics.uci.edu/dataset/401/gene+expression+cancer+rna+seq
+Citation: S. Fiorini, "Gene expression cancer RNA-Seq," UCI Machine Learning 
+          Repository, 2016.
+
+DOWNLOAD INSTRUCTIONS
+---------------------
+
+Step 1: Access the Dataset
+   - Navigate to: https://archive.ics.uci.edu/dataset/401/gene+expression+cancer+rna+seq
+   - Click "Download" button on the page
+   - Download the complete dataset package
+
+Step 2: Extract Files
+   - Unzip the downloaded archive
+   - You should find the following files:
+     * data.csv (gene expression matrix)
+     * labels.csv (cancer type labels)
+
+Step 3: Gene Mapping (CRITICAL)
+   
+   The UCI dataset uses placeholder gene identifiers (gene_0, gene_1, etc.)
+   instead of actual gene symbols. To restore biological annotations:
+   
+   Option A - Use Synapse Repository Mapping:
+   a) Visit: https://repo-prod.prod.sagebase.org/repo/v1/doi/locate?id=syn300013&type=ENTITY
+   b) Reference: K. Ellrott, "TCGA_Pancancer," Synapse, 2013, DOI: 10.7303/SYN300013
+   c) Download the original TCGA feature annotations
+   d) Cross-reference the gene order with UCI dataset columns
+   
+   Option B - Use Published Mapping:
+   a) Reference: M. Oh and L. Zhang, "Generalizing predictions to unseen 
+      sequencing profiles via deep generative models," Sci. Rep., vol. 12, 
+      May 2022, Art. no. 7151, DOI: 10.1038/s41598-022-11363-w
+   b) The supplementary materials contain gene mapping information
+   c) Download and apply the mapping to restore gene symbols
+   
+   Option C - Create Custom Mapping:
+   a) The gene order in the UCI dataset preserves the original TCGA structure
+   b) Download TCGA gene annotations from the GDC portal
+   c) Map placeholder IDs to gene symbols based on positional correspondence
+
+Step 4: Create Gene Mapping File (Genetic_Data.csv)
+   
+   Create a CSV file with the following structure:
+   - First row: Gene symbols (20,531 columns)
+   - First column can optionally contain a "Label" column
+   
+   Example format:
+   Label,TSPAN6,TNMD,DPM1,SCYL3,...
+   
+   This file is required for the pipeline to assign biological names to features.
+
+Step 5: Organize Files
+   
+   Place the following files in data/primary/:
+   - data.csv (801 rows × 20,531 columns)
+   - labels.csv (801 rows × 1 column)
+   - Genetic_Data.csv (gene mapping file you created)
+
+EXPECTED FILE FORMATS
+---------------------
+
+data.csv:
+- Rows: 801 samples
+- Columns: 20,531 gene features
+- Format: Comma-separated values
+- First column may contain sample IDs or "Unnamed: 0"
+- All subsequent columns contain gene expression values (continuous)
+
+labels.csv:
+- Rows: 801 samples
+- Columns: 1 (cancer type labels)
+- Format: Comma-separated values
+- Labels should be: BRCA, COAD, KIRC, LUAD, PRAD
+- May contain "Unnamed: 0" or "type" as column header
+
+Genetic_Data.csv:
+- Rows: 1 (header with gene names)
+- Columns: 20,531 genes + optional Label column
+- Format: Comma-separated values
+- Each column name should be a valid gene symbol (e.g., TSPAN6, TP53, BRCA1)
+
+QUALITY CHECKS
+--------------
+
+After downloading, verify:
+✓ data.csv has 801 rows and 20,531 columns
+✓ labels.csv has 801 rows
+✓ All five cancer types are present in labels
+✓ No missing values in expression matrix
+✓ Gene mapping file contains 20,531 gene symbols
+✓ Files are placed in data/primary/ directory
+
+================================================================================
+PART 2: SECONDARY DATASET (TCGA GDC PORTAL)
+================================================================================
+
+SOURCE INFORMATION
+------------------
+Portal: TCGA Genomic Data Commons (GDC) Data Portal
+URL: https://portal.gdc.cancer.gov/repository
+Data Release: v43.0 (or latest available)
+Access: Open access (no authentication required for Level 3 data)
+
+QUERY SPECIFICATIONS
+--------------------
+
+The following filters must be applied to replicate the exact cohort:
+
+1. CASE FILTERS:
+   
+   Primary Site:
+   - Breast
+   - Kidney
+   - Bronchus and lung
+   - Prostate gland
+   - Colon
+   
+   Program:
+   - TCGA
+   
+   Project:
+   - TCGA-BRCA (Breast Invasive Carcinoma)
+   - TCGA-KIRC (Kidney Renal Clear Cell Carcinoma)
+   - TCGA-LUAD (Lung Adenocarcinoma)
+   - TCGA-PRAD (Prostate Adenocarcinoma)
+   - TCGA-COAD (Colon Adenocarcinoma)
+   
+   Gender:
+   - Female
+   - Male
+   
+   Sample Type:
+   - Primary Tumor
+   - EXCLUDE: Solid Tissue Normal, Recurrent Tumor, Metastatic
+
+2. FILE FILTERS:
+   
+   Data Category:
+   - Transcriptome Profiling
+   
+   Data Type:
+   - Gene Expression Quantification
+   
+   Experimental Strategy:
+   - RNA-Seq
+   
+   Workflow Type:
+   - STAR - Counts
+   
+   Data Format:
+   - TSV (Tab-Separated Values)
+
+3. QUALITY CONTROL CRITERIA:
+   
+   Minimum Read Depth:
+   - ≥ 10 million mapped reads
+   
+   Exclusion Criteria:
+   - Normal tissue samples
+   - Recurrent tumor samples
+   - Metastatic samples
+   - Samples with read depth < 10 million
+   - Duplicate samples from same patient
+
+DOWNLOAD INSTRUCTIONS
+---------------------
+
+Step 1: Access TCGA GDC Portal
+   - Navigate to: https://portal.gdc.cancer.gov/repository
+   - You will see the main repository interface
+
+Step 2: Apply Case Filters
+   - Click "Add a Case/Biospecimen Filter" on the left sidebar
+   - Under "Primary Site": Check boxes for:
+     * Breast
+     * Kidney
+     * Bronchus and lung
+     * Prostate gland
+     * Colon
+   - Under "Program": Select "TCGA"
+   - Under "Project": Select all five projects:
+     * TCGA-BRCA
+     * TCGA-KIRC
+     * TCGA-LUAD
+     * TCGA-PRAD
+     * TCGA-COAD
+   - Under "Sample Type": Select "Primary Tumor" ONLY
+
+Step 3: Apply File Filters
+   - Click "Add a File Filter" on the left sidebar
+   - Set the following:
+     * Data Category: Transcriptome Profiling
+     * Data Type: Gene Expression Quantification
+     * Experimental Strategy: RNA-Seq
+     * Workflow Type: STAR - Counts
+     * Data Format: TSV
+
+Step 4: Review Query Results
+   - You should see approximately 3,513 files
+   - Total cases: ~3,091
+   - Data volume: ~14.89 GB
+   - These numbers may vary slightly depending on the GDC data release version
+
+Step 5: Download Options
+
+   Option A - Use GDC Data Transfer Tool (Recommended for large downloads):
+   
+   a) Click "Cart" button to add all files
+   b) In cart, click "Download" → "Manifest"
+   c) Save the manifest.txt file
+   d) Install GDC Data Transfer Tool:
+      - Download from: https://gdc.cancer.gov/access-data/gdc-data-transfer-tool
+      - Install according to your operating system
+   e) Run download command:
+      gdc-client download -m manifest.txt
+   f) This will download all TSV files organized by case ID
+   
+   Option B - Direct Download (for smaller subsets):
+   
+   a) In the file list, select files you want to download
+   b) Click "Download" → "Cart"
+   c) Choose "Download Files"
+   d) Files will download as a compressed archive
+
+Step 6: Extract Gene Expression Matrix
+
+   After downloading, you will have multiple TSV files (one per sample).
+   Each file contains gene expression counts.
+   
+   You need to aggregate these into a single matrix:
+   
+   a) Create a Python script or use R to merge files:
+   
+   Python example:
+   ```
+   import pandas as pd
+   import os
+   
+   data_dir = "path/to/downloaded/files"
+   all_files = []
+   
+   for root, dirs, files in os.walk(data_dir):
+       for file in files:
+           if file.endswith(".tsv"):
+               df = pd.read_csv(os.path.join(root, file), sep="\t")
+               # Extract counts column and sample ID
+               # Aggregate into matrix
+               all_files.append(df)
+   
+   # Merge all samples into single matrix
+   expression_matrix = pd.concat(all_files, axis=1)
+   ```
+   
+   b) The merged matrix should have:
+      - Rows: Gene identifiers (Ensembl IDs or gene symbols)
+      - Columns: Sample IDs
+      - Values: Raw counts or normalized expression
+   
+   c) Transpose if needed so that:
+      - Rows = samples (2,403)
+      - Columns = genes (66,660)
+
+Step 7: Extract Sample Annotations
+
+   a) Download clinical data for all selected cases:
+      - In GDC portal, go to "Clinical" tab
+      - Download clinical metadata
+   
+   b) Create labels file mapping sample IDs to cancer types:
+      - Use the project information (TCGA-BRCA → BRCA, etc.)
+      - Format: CSV with columns [sample_id, type]
+   
+   c) Ensure labels correspond to samples in expression matrix
+
+Step 8: Quality Control
+
+   Apply the following filters to the downloaded data:
+   
+   a) Read depth filtering:
+      - Parse metadata to get read depth per sample
+      - Exclude samples with < 10 million mapped reads
+   
+   b) Sample type verification:
+      - Confirm all samples are primary tumors
+      - Remove any normal, recurrent, or metastatic samples
+   
+   c) Duplicate removal:
+      - Identify multiple samples from same patient
+      - Keep only one sample per patient (prefer highest read depth)
+   
+   d) Final cohort should have ~2,403 unique primary tumor samples
+
+Step 9: Format for Pipeline
+
+   Create two files:
+   
+   data.csv:
+   - Rows: 2,403 samples
+   - Columns: 66,660 genes
+   - Gene names should be official gene symbols (not Ensembl IDs)
+   - Convert Ensembl IDs to gene symbols using biomaRt or similar tool
+   
+   labels.csv:
+   - Rows: 2,403 samples
+   - Column: "type" with values [BRCA, COAD, KIRC, LUAD, PRAD]
+
+Step 10: Organize Files
+   
+   Place the following files in data/secondary/:
+   - data.csv (2,403 rows × 66,660 columns)
+   - labels.csv (2,403 rows × 1 column)
+   
+   Note: No gene mapping file needed for secondary dataset as gene
+   symbols are already included in the expression matrix.
+
+EXPECTED FILE FORMATS
+---------------------
+
+data.csv:
+- Rows: 2,403 samples
+- Columns: 66,660 gene features
+- Format: Comma-separated values
+- Column names should be gene symbols (e.g., TSPAN6, TP53)
+- First column may contain sample IDs or "Unnamed: 0"
+- All values are continuous (expression counts or normalized values)
+
+labels.csv:
+- Rows: 2,403 samples
+- Columns: 1 (cancer type labels)
+- Format: Comma-separated values
+- Labels should be: BRCA, COAD, KIRC, LUAD, PRAD
+- Column name can be "type" or will be renamed by pipeline
+
+QUALITY CHECKS
+--------------
+
+After processing, verify:
+✓ data.csv has 2,403 rows and 66,660 columns
+✓ labels.csv has 2,403 rows
+✓ All five cancer types are present with proper distribution
+✓ No missing values in expression matrix
+✓ Gene symbols are properly formatted (not Ensembl IDs)
+✓ No duplicate samples from same patient
+✓ All samples are primary tumors only
+✓ Files are placed in data/secondary/ directory
+
+SAMPLE DISTRIBUTION CHECK
+--------------------------
+
+Verify your dataset has approximately these sample counts per cancer type:
+
+TCGA-BRCA: ~751 samples
+TCGA-KIRC: ~487 samples
+TCGA-LUAD: ~446 samples
+TCGA-PRAD: ~390 samples
+TCGA-COAD: ~329 samples
+
+Slight variations are acceptable due to QC filtering.
+
+================================================================================
+ALTERNATIVE DATA SOURCES
+================================================================================
+
+If you encounter issues accessing the above sources, consider these alternatives:
+
+1. UCSC Xena Browser
+   URL: https://xenabrowser.net/
+   - Hosts TCGA data with pre-processed expression matrices
+   - Easier to download complete matrices
+   - May require additional filtering to match study criteria
+
+2. cBioPortal
+   URL: https://www.cbioportal.org/
+   - Provides TCGA data with clinical annotations
+   - Web interface for querying and downloading
+   - May have different normalization than GDC portal
+
+3. Broad Institute GDAC Firehose
+   URL: http://gdac.broadinstitute.org/
+   - Archives of TCGA data releases
+   - Standardized data processing
+   - Good for reproducibility
+
+Note: If using alternative sources, ensure preprocessing matches the original
+study methodology to maintain comparability.
+
+================================================================================
+DATA VERIFICATION
+================================================================================
+
+Before running the pipeline, verify your data preparation:
+
+PRIMARY DATASET CHECKLIST:
+□ data.csv exists in data/primary/
+□ labels.csv exists in data/primary/
+□ Genetic_Data.csv exists in data/primary/
+□ data.csv has shape (801, 20531)
+□ labels.csv has 801 rows
+□ All five cancer types present
+□ Gene mapping file has 20,531 gene symbols
+□ No missing or NaN values
+
+SECONDARY DATASET CHECKLIST:
+□ data.csv exists in data/secondary/
+□ labels.csv exists in data/secondary/
+□ data.csv has shape (2403, 66660)
+□ labels.csv has 2,403 rows
+□ All five cancer types present
+□ Gene symbols are properly formatted
+□ No missing or NaN values
+□ No duplicate patient samples
+□ Only primary tumor samples included
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+1. DATA VERSIONS:
+   - TCGA data is periodically updated in the GDC portal
+   - Different data releases may have slightly different sample counts
+   - Document which GDC data release version you use
+   - This study used GDC Data Release v43.0
+
+2. PREPROCESSING DIFFERENCES:
+   - The pipeline handles preprocessing (normalization, filtering)
+   - Provide raw or minimally processed data when possible
+   - Do NOT apply log transformation before running the pipeline
+   - Do NOT normalize data before running the pipeline
+
+3. GENE IDENTIFIERS:
+   - Ensure gene symbols are current (not deprecated symbols)
+   - Use official HUGO Gene Nomenclature Committee (HGNC) symbols
+   - Convert Ensembl IDs to gene symbols if needed
+   - Remove version numbers from Ensembl IDs
+
+4. SAMPLE INDEPENDENCE:
+   - Verify no sample overlap between primary and secondary datasets
+   - Remove duplicate samples from same patient
+   - Use TCGA barcode system to identify unique samples
+
+5. FILE ENCODING:
+   - Save CSV files with UTF-8 encoding
+   - Use Unix line endings (LF) preferred over Windows (CRLF)
+   - Avoid special characters in file names
+
+6. LEGAL AND ETHICAL:
+   - TCGA data is open access for research purposes
+   - Follow TCGA publication guidelines if publishing results
+   - Acknowledge TCGA Research Network in publications
+   - Review and comply with NIH Genomic Data Sharing Policy
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: Cannot access UCI dataset
+Solution: The dataset may have moved. Try searching for "Gene expression cancer 
+RNA-Seq" or "TCGA-PANCAN-HiSeq-801x20531" in academic repositories.
+
+Problem: TCGA query returns wrong number of samples
+Solution: Verify all filters are applied correctly. Sample counts may vary 
+slightly between GDC data releases. Focus on maintaining the same cancer 
+types and quality criteria.
+
+Problem: Gene symbols don't match between datasets
+Solution: This is expected. Primary and secondary datasets use different gene 
+panels. The pipeline handles this automatically during preprocessing.
+
+Problem: Missing gene mapping file for primary dataset
+Solution: Contact the original study authors or reconstruct mapping using 
+Synapse repository or published supplementary materials.
+
+Problem: Downloaded files are in wrong format
+Solution: Ensure you selected "TSV" format for TCGA data and that you're 
+downloading the STAR - Counts workflow output.
+
+Problem: Expression values seem incorrect
+Solution: Verify you have raw counts or FPKM/TPM values, not log-transformed 
+data. The pipeline applies its own transformations.
+
+================================================================================
+SUPPORT
+================================================================================
+
+For issues with:
+- UCI Repository: Contact UCI Machine Learning Repository support
+- TCGA Portal: Visit GDC Support (https://gdc.cancer.gov/support)
+- Pipeline-specific questions: See main README.md
+
+================================================================================
+REFERENCES
+================================================================================
+
+[1] S. Fiorini, "Gene expression cancer RNA-Seq," UCI Machine Learning 
+    Repository, 2016. DOI: 10.24432/C5R88H
+
+[2] K. Ellrott, "TCGA_Pancancer," Synapse, 2013. DOI: 10.7303/SYN300013
+
+[3] M. Oh and L. Zhang, "Generalizing predictions to unseen sequencing 
+    profiles via deep generative models," Sci. Rep., vol. 12, May 2022, 
+    Art. no. 7151. DOI: 10.1038/s41598-022-11363-w
+
+[4] TCGA Research Network: https://www.cancer.gov/tcga
+
+[5] GDC Data Portal: https://portal.gdc.cancer.gov/
