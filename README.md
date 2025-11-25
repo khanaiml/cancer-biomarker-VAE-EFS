@@ -1,7 +1,6 @@
-# Cancer Biomarker Identification Pipeline
+# Cancer Biomarkers Identification Using Explainable Variational Autoencoders With Ensemble Feature Selection
 
-A framework integrating Variational Autoencoders (VAEs), Integrated Gradients (IG), and Ensemble Feature Selection (EFS) for robust biomarker identification in RNA-Seq data.
-
+An interpretable and generalized pipeline integrated VAE with integrated gradients and ensemble feature selection to address challenges such as RNA-Seq's high dimensionality and noise,  models overfitting, feature selection instability, dataset bias, and poor generalization.
 ## Overview
 
 This pipeline implements a generalizable methodology for identifying cancer biomarkers from high-dimensional RNA-Seq data. The approach combines:
